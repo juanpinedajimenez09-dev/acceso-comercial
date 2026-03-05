@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TURBO – Asistente Virtual CDA Barroblanco</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5c888;
+    --surface: #f0ba70;
+    --surface2: #e8a858;
+    --border: rgba(140,70,0,0.18);
+    --accent: #1a5fa8;
+    --accent2: #0d3f7a;
+    --success: #006a42;
+    --warning: #c07000;
+    --text: #1a0a00;
+    --muted: #5a3000;
+    --bot-bubble: #f0ba70;
+    --user-bubble: linear-gradient(135deg,#0d3f7a,#1a5fa8);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background: linear-gradient(135deg, #f0b060 0%, #f5c888 40%, #90b8e0 70%, #5a90c8 100%);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;overflow-x:hidden;}
+  
+  /* HEADER */
+  .header{width:100%;background:linear-gradient(135deg,#f0a040 0%,#2a7fd4 100%);border-bottom:1px solid rgba(140,70,0,0.2);padding:14px 24px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100;backdrop-filter:blur(12px);}
+  .logo-circle{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:18px;color:#fff;flex-shrink:0;box-shadow:0 0 18px rgba(0,136,255,0.4);}
+  .header-info{flex:1}
+  .header-name{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:#1a0a00;line-height:1}
+  .header-sub{font-size:11px;color:#3a1500;letter-spacing:1.5px;text-transform:uppercase;margin-top:2px}
+  .status-pill{display:flex;align-items:center;gap:6px;background:rgba(0,229,160,0.1);border:1px solid rgba(0,229,160,0.25);border-radius:20px;padding:4px 12px;font-size:11px;color:var(--success);font-weight:600;letter-spacing:.5px;}
+  .status-dot{width:7px;height:7px;border-radius:50%;background:var(--success);animation:pulse 1.5s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(0,229,160,.4)}50%{opacity:.8;box-shadow:0 0 0 5px rgba(0,229,160,0)}}
+
+  /* FEATURES BAR */
+  .features{display:flex;gap:8px;padding:12px 20px;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid rgba(140,70,0,0.18);width:100%;max-width:860px;}
+  .features::-webkit-scrollbar{display:none}
+  .feat{display:flex;align-items:center;gap:6px;background:#e8a858;border:1px solid rgba(140,70,0,0.2);border-radius:20px;padding:5px 12px;font-size:11px;color:#2a1000;white-space:nowrap;font-weight:500;}
+  .feat svg{width:13px;height:13px;flex-shrink:0;color:#3a1800;}
+
+  /* CHAT CONTAINER */
+  .chat-wrap{flex:1;width:100%;max-width:860px;display:flex;flex-direction:column;height:calc(100vh - 130px);}
+  .messages{flex:1;overflow-y:auto;padding:20px 16px;display:flex;flex-direction:column;gap:14px;scrollbar-width:thin;scrollbar-color:var(--surface2) transparent;}
+  .messages::-webkit-scrollbar{width:4px}
+  .messages::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:4px}
+
+  /* BUBBLES */
+  .msg{display:flex;gap:10px;animation:fadeIn .3s ease;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .msg.user{flex-direction:row-reverse}
+  .avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;font-weight:600;}
+  .avatar.user-av{background:linear-gradient(135deg,#2a3a5e,#3a4a6e);font-size:13px;}
+  .bubble{max-width:72%;padding:12px 16px;border-radius:16px;font-size:14px;line-height:1.6;}
+  .msg.bot .bubble{background:#f0ba70;border:1px solid rgba(140,70,0,0.2);border-top-left-radius:4px;}
+  .msg.user .bubble{background:var(--user-bubble);border-top-right-radius:4px;color:#fff;}
+  .bubble strong{font-weight:600;}
+  .bubble .tag{display:inline-block;background:rgba(100,50,0,.15);color:#2a1000;border:1px solid rgba(100,50,0,.3);border-radius:10px;font-size:11px;padding:2px 8px;margin:3px 3px 3px 0;font-weight:500;}
+
+  /* QUICK REPLIES */
+  .quick-replies{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+  .qr{background:transparent;border:1px solid rgba(50,20,0,.35);color:#2a1000;border-radius:20px;padding:5px 13px;font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;font-weight:500;}
+  .qr:hover{background:rgba(50,20,0,.1);border-color:#2a1000;}
+
+  /* APPOINTMENT FORM */
+  .appt-form{background:#e8a858;border:1px solid rgba(140,70,0,0.2);border-radius:14px;padding:16px;margin-top:6px;}
+  .appt-form h4{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;color:#1a0800;margin-bottom:12px;}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .form-field{display:flex;flex-direction:column;gap:4px;}
+  .form-field.full{grid-column:span 2;}
+  .form-field label{font-size:11px;color:#3a1800;font-weight:500;letter-spacing:.5px;text-transform:uppercase;}
+  .form-field input,.form-field select{background:#f5c888;border:1px solid rgba(140,70,0,0.25);color:#1a0800;border-radius:8px;padding:8px 12px;font-size:13px;font-family:'DM Sans',sans-serif;outline:none;transition:border .2s;}
+  .form-field input:focus,.form-field select:focus{border-color:#2a7fd4;}
+  .form-field select option{background:#f5c888;color:#1a0800;}
+  .btn-confirm{margin-top:12px;width:100%;background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;border:none;border-radius:10px;padding:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;letter-spacing:.5px;transition:opacity .2s;}
+  .btn-confirm:hover{opacity:.85;}
+
+  /* INPUT AREA */
+  .input-area{padding:12px 16px 16px;border-top:1px solid rgba(140,70,0,0.18);}
+  .input-row{display:flex;gap:10px;align-items:flex-end;background:#f0ba70;border:1px solid rgba(140,70,0,0.25);border-radius:16px;padding:8px 12px;transition:border .2s;}
+  .input-row:focus-within{border-color:#2a7fd4;}
+  #userInput{flex:1;background:transparent;border:none;color:#1a0800;font-size:14px;font-family:'DM Sans',sans-serif;resize:none;outline:none;max-height:100px;min-height:24px;line-height:1.5;}
+  #userInput::placeholder{color:#7a4010;}
+  .send-btn{background:linear-gradient(135deg,var(--accent2),var(--accent));border:none;width:36px;height:36px;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:opacity .2s;}
+  .send-btn:hover{opacity:.8;}
+  .send-btn svg{width:16px;height:16px;color:#fff;}
+
+  /* TYPING */
+  .typing-indicator{display:flex;gap:4px;padding:12px 16px;align-items:center;}
+  .typing-indicator span{width:7px;height:7px;border-radius:50%;background:var(--muted);animation:bounce .9s infinite;}
+  .typing-indicator span:nth-child(2){animation-delay:.15s}
+  .typing-indicator span:nth-child(3){animation-delay:.3s}
+  @keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+
+  /* CONFIRM CARD */
+  .confirm-card{background:rgba(0,180,120,.08);border:1px solid rgba(0,180,120,.3);border-radius:14px;padding:14px 16px;margin-top:6px;}
+  .confirm-card h4{color:#50ffb0;font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1px;margin-bottom:8px;}
+  .confirm-row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;}
+  .confirm-row span:first-child{color:#5a3010;}
+  .confirm-row span:last-child{font-weight:500;color:#1a0800;}
+
+  @media(max-width:600px){
+    .form-grid{grid-template-columns:1fr;}
+    .form-field.full{grid-column:span 1;}
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header" style="justify-content:space-between">
+  <div style="display:flex;align-items:center;gap:14px">
+    <!-- Logo 3D TURBO mascota -->
+    <div style="width:54px;height:54px;flex-shrink:0;filter:drop-shadow(0 4px 12px rgba(255,120,0,0.5))">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <!-- Gradientes 3D naranja -->
+          <radialGradient id="bodyGrad" cx="40%" cy="35%" r="60%">
+            <stop offset="0%" stop-color="#FFB347"/>
+            <stop offset="60%" stop-color="#FF7A00"/>
+            <stop offset="100%" stop-color="#C04A00"/>
+          </radialGradient>
+          <radialGradient id="bellyGrad" cx="50%" cy="40%" r="55%">
+            <stop offset="0%" stop-color="#FFF5E0"/>
+            <stop offset="100%" stop-color="#E8C98A"/>
+          </radialGradient>
+          <radialGradient id="capGrad" cx="35%" cy="30%" r="65%">
+            <stop offset="0%" stop-color="#4EAAFF"/>
+            <stop offset="55%" stop-color="#1565C0"/>
+            <stop offset="100%" stop-color="#0A3A7A"/>
+          </radialGradient>
+          <radialGradient id="noseGrad" cx="35%" cy="30%" r="60%">
+            <stop offset="0%" stop-color="#555"/>
+            <stop offset="100%" stop-color="#111"/>
+          </radialGradient>
+          <!-- Sombra suave -->
+          <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="1" dy="2" stdDeviation="2" flood-color="#00000066"/>
+          </filter>
+        </defs>
+
+        <!-- Cuerpo / overol azul -->
+        <ellipse cx="50" cy="72" rx="22" ry="20" fill="#1565C0"/>
+        <ellipse cx="50" cy="68" rx="20" ry="16" fill="#1976D2"/>
+        <!-- Highlight overol -->
+        <ellipse cx="44" cy="63" rx="7" ry="4" fill="#2196F3" opacity="0.4"/>
+
+        <!-- Patas -->
+        <ellipse cx="34" cy="87" rx="9" ry="6" fill="#8B3A00"/>
+        <ellipse cx="66" cy="87" rx="9" ry="6" fill="#8B3A00"/>
+        <ellipse cx="34" cy="86" rx="8" ry="5" fill="#A04500"/>
+        <ellipse cx="66" cy="86" rx="8" ry="5" fill="#A04500"/>
+
+        <!-- Brazos -->
+        <ellipse cx="28" cy="73" rx="7" ry="10" fill="url(#bodyGrad)" transform="rotate(-15 28 73)"/>
+        <ellipse cx="72" cy="73" rx="7" ry="10" fill="url(#bodyGrad)" transform="rotate(15 72 73)"/>
+        <!-- Manos -->
+        <ellipse cx="24" cy="81" rx="6" ry="5" fill="#8B3A00"/>
+        <ellipse cx="76" cy="81" rx="6" ry="5" fill="#8B3A00"/>
+
+        <!-- Cola -->
+        <ellipse cx="78" cy="75" rx="10" ry="7" fill="url(#bodyGrad)" transform="rotate(-30 78 75)"/>
+        <ellipse cx="80" cy="72" rx="6" ry="4" fill="#FFF5E0" opacity="0.8" transform="rotate(-30 80 72)"/>
+
+        <!-- Cabeza -->
+        <ellipse cx="50" cy="44" rx="22" ry="20" fill="url(#bodyGrad)" filter="url(#shadow)"/>
+
+        <!-- Orejas -->
+        <polygon points="30,30 24,12 38,26" fill="url(#bodyGrad)"/>
+        <polygon points="70,30 76,12 62,26" fill="url(#bodyGrad)"/>
+        <polygon points="31,28 26,16 37,25" fill="#FFD0A0" opacity="0.7"/>
+        <polygon points="69,28 74,16 63,25" fill="#FFD0A0" opacity="0.7"/>
+
+        <!-- Cara blanca -->
+        <ellipse cx="50" cy="50" rx="14" ry="11" fill="url(#bellyGrad)"/>
+
+        <!-- Ojos -->
+        <circle cx="42" cy="42" r="5.5" fill="white"/>
+        <circle cx="58" cy="42" r="5.5" fill="white"/>
+        <circle cx="43" cy="43" r="3.2" fill="#1a1a1a"/>
+        <circle cx="59" cy="43" r="3.2" fill="#1a1a1a"/>
+        <!-- Brillo ojos -->
+        <circle cx="44.5" cy="41.5" r="1.2" fill="white"/>
+        <circle cx="60.5" cy="41.5" r="1.2" fill="white"/>
+
+        <!-- Cejas -->
+        <path d="M38,37 Q42,34 46,37" stroke="#8B3A00" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        <path d="M54,37 Q58,34 62,37" stroke="#8B3A00" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+
+        <!-- Nariz -->
+        <ellipse cx="50" cy="50" rx="4" ry="3" fill="url(#noseGrad)"/>
+        <ellipse cx="49" cy="49" rx="1.5" ry="1" fill="#666" opacity="0.5"/>
+
+        <!-- Sonrisa -->
+        <path d="M44,55 Q50,61 56,55" stroke="#8B3A00" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+        <path d="M44,55 Q50,62 56,55" stroke="#FF9966" stroke-width="1" fill="none" stroke-linecap="round" opacity="0.5"/>
+
+        <!-- Gorra azul 3D -->
+        <ellipse cx="50" cy="32" rx="22" ry="8" fill="url(#capGrad)"/>
+        <ellipse cx="50" cy="28" rx="18" ry="12" fill="url(#capGrad)"/>
+        <!-- Visera -->
+        <ellipse cx="50" cy="33" rx="24" ry="5" fill="#1565C0"/>
+        <ellipse cx="50" cy="33" rx="24" ry="4" fill="#1976D2"/>
+        <!-- Highlight gorra -->
+        <ellipse cx="44" cy="24" rx="7" ry="3.5" fill="#64B5F6" opacity="0.45"/>
+
+        <!-- Texto TURBO en gorra -->
+        <text x="50" y="31" font-family="Arial Black, sans-serif" font-size="7.5" font-weight="900"
+              text-anchor="middle" fill="#FF8C00" letter-spacing="0.5"
+              style="text-shadow:0 1px 2px #00000066">TURBO</text>
+      </svg>
+    </div>
+    <div class="header-info">
+      <div class="header-name">CDA BARROBLANCO</div>
+      <div class="header-sub">TURBO · Asistente Virtual IA 24/7</div>
+    </div>
+  </div>
+  <div class="status-pill"><div class="status-dot"></div>En línea</div>
+</div>
+
+<!-- FEATURES BAR -->
+<div class="features">
+  <div class="feat"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Atención 24/7</div>
+  <div class="feat"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>Agendamiento automático</div>
+  <div class="feat"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>Preguntas frecuentes</div>
+  <div class="feat"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>Respuesta instantánea</div>
+  <div class="feat"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Sin intervención humana</div>
+</div>
+
+<!-- CHAT -->
+<div class="chat-wrap">
+  <div class="messages" id="messages"></div>
+  <div class="input-area">
+    <div class="input-row">
+      <textarea id="userInput" rows="1" placeholder="Escribe tu consulta aquí..."></textarea>
+      <button class="send-btn" onclick="sendMessage()">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== FIREBASE CONFIG =====
+// INSTRUCCIONES: Reemplaza esta URL con la de tu Firebase Realtime Database
+// Ejemplo: https://TU-PROYECTO-default-rtdb.firebaseio.com
+const FIREBASE_URL = 'https://cda-turbo-barroblanco-default-rtdb.firebaseio.com';
+// ===========================
+const KNOWLEDGE = {
+  horario: "Nuestro horario de atención es 🕐 <strong>Lunes a Viernes: 7:00 AM – 6:30 PM</strong> · <strong>Sábados: 7:00 AM – 4:30 PM</strong> · <strong>Domingos y Festivos: 8:00 AM – 12:00 M</strong>. ¡Y yo, TURBO, estoy disponible las 24 horas! 🤖",
+  servicios: `En <strong>CDA Barroblanco</strong> realizamos revisión técnico-mecánica para:<br><br><span class="tag">🏍️ Moto 2T</span><span class="tag">🏍️ Moto 4T</span><span class="tag">🛺 Motocarro</span><span class="tag">🚗 Livianos (Particular)</span><span class="tag">🚕 Livianos Públicos (Taxi/Colectivo)</span><span class="tag">⚡ Eléctricos</span><br><br>También ofrecemos: <span class="tag">🛡️ Venta de SOAT</span> <span class="tag">🔍 Revisiones Preventivas</span>`,
+  precio: `💰 ¡El valor de tu revisión depende del tipo de vehículo y su año modelo! Consulta tu tarifa exacta aquí abajo 👇`,
+  requisitos: "Para la revisión técnico-mecánica necesitas:\n<span class='tag'>📋 Tarjeta de tránsito</span>",
+  ubicacion: `📍 Nos puedes encontrar aquí:<br><br>
+<div style="background:#0d1420;border:1px solid rgba(0,200,255,0.2);border-radius:12px;padding:14px 16px;margin-top:4px;">
+  <div style="font-size:13px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.8px;font-weight:500;">Dirección</div>
+  <div style="font-size:15px;font-weight:600;margin-bottom:2px;">Calle 17 # 3-50</div>
+  <div style="font-size:13px;color:var(--muted);">Barrio Hoyo Grande — Piedecuesta, Santander</div>
+  <a href="https://maps.app.goo.gl/E2XCy3fMaCg5ipLZ6?g_st=awb" target="_blank"
+     style="display:inline-flex;align-items:center;gap:8px;margin-top:12px;background:linear-gradient(135deg,#0055ff,#00c8ff);color:#fff;text-decoration:none;padding:9px 18px;border-radius:10px;font-size:13px;font-weight:600;letter-spacing:.3px;">
+    🗺️ Abrir en Google Maps
+  </a>
+</div>`,
+  documentos: "Para tu cita solo necesitas traer la <strong>tarjeta de tránsito</strong>. Si tienes alguna duda adicional, ¡con gusto te ayudo!",
+  asesor: `¡Claro! 😊 Te conecto con uno de nuestros <strong>asesores comerciales</strong> ahora mismo. Haz clic en el botón disponible:<br><br><a href="https://wa.me/573189460686?text=Hola,%20me%20comunic%C3%B3%20desde%20el%20chatbot%20TURBO%20del%20CDA%20Barroblanco%20y%20quisiera%20m%C3%A1s%20informaci%C3%B3n." target="_blank" style="display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;text-decoration:none;padding:12px 22px;border-radius:12px;font-size:14px;font-weight:700;margin-top:6px;box-shadow:0 4px 14px rgba(37,211,102,0.4);">💬 Asesor 1 — WhatsApp</a><br><br><a href="https://wa.me/573189460685?text=Hola,%20me%20comunic%C3%B3%20desde%20el%20chatbot%20TURBO%20del%20CDA%20Barroblanco%20y%20quisiera%20m%C3%A1s%20informaci%C3%B3n." target="_blank" style="display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;text-decoration:none;padding:12px 22px;border-radius:12px;font-size:14px;font-weight:700;margin-top:6px;box-shadow:0 4px 14px rgba(37,211,102,0.4);">💬 Asesor 2 — WhatsApp</a>`,
+};
+
+const FAQS = [
+  { keys: ["horario","hora","atienden","abierto","cierra","cuando","jornada"], resp: "horario" },
+  { keys: ["servicio","ofrece","hacen","realizan","tipos","moto 2t","moto 4t","motocarro","electrico","eléctrico","liviano"], resp: "servicios" },
+  { keys: ["precio","costo","valor","cuanto","cobran","tarifa","tarifas","2026"], resp: "precio" },
+  { keys: ["requisito","necesito","documentos","llevar","traer"], resp: "requisitos" },
+  { keys: ["donde","ubicacion","ubicación","direccion","dirección","lugar","queda","mapa","maps","como llegar","piedecuesta","hoyo grande","ver ubicacion","ver ubicación"], resp: "ubicacion" },
+  { keys: ["cuanto tiempo","demora","tarda","duracion"], resp: "duracion" },
+  { keys: ["asesor","asesor comercial","humano","persona","hablar con","whatsapp","contacto","llamar","vendedor"], resp: "asesor" },
+];
+
+let awaitingAppointment = false;
+let conversationHistory = [];
+
+// ─── SISTEMA DE GESTIÓN DE CITAS (FIREBASE) ────────────────────────────────
+let citasCache = {}; // cache local sincronizado con Firebase
+
+async function sincronizarCitasFirebase() {
+  try {
+    const resp = await fetch(`${FIREBASE_URL}/citas.json`);
+    const data = await resp.json();
+    citasCache = data || {};
+  } catch(e) {
+    citasCache = {};
+  }
+}
+
+function slotKey(fecha, hora) { return fecha + '_' + hora.replace(/[: ]/g, '-'); }
+
+function isSlotOcupado(fecha, hora) {
+  return !!citasCache[slotKey(fecha, hora)];
+}
+
+async function registrarCita(fecha, hora, datos) {
+  const key = slotKey(fecha, hora);
+  citasCache[key] = datos;
+  try {
+    await fetch(`${FIREBASE_URL}/citas/${key}.json`, {
+      method: 'PUT',
+      body: JSON.stringify({ ...datos, fecha, hora, reservado: true })
+    });
+  } catch(e) { console.error('Error guardando cita en Firebase', e); }
+}
+
+function getHorariosDelDia(fechaStr) {
+  const d = new Date(fechaStr + 'T12:00:00');
+  const dia = d.getDay();
+  function slots(hIni, mIni, hFin, mFin) {
+    const result = [];
+    let h = hIni, m = mIni;
+    while (h < hFin || (h === hFin && m <= mFin)) {
+      const ampm = h < 12 ? 'AM' : 'PM';
+      const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+      result.push(`${h12}:${m.toString().padStart(2,'0')} ${ampm}`);
+      m += 20;
+      if (m >= 60) { m -= 60; h++; }
+    }
+    return result;
+  }
+  if (dia === 0) return slots(8,0,11,40);
+  if (dia === 6) return slots(7,0,16,10);
+  return slots(7,0,18,10);
+}
+
+function getHorariosDisponibles(fechaStr) {
+  return getHorariosDelDia(fechaStr).filter(h => !isSlotOcupado(fechaStr, h));
+}
+
+function buildHorariosOptions(fechaStr) {
+  if (!fechaStr) return '<option value="">Selecciona primero la fecha...</option>';
+  const todos = getHorariosDelDia(fechaStr);
+  if (todos.length === 0) return '<option value="">⛔ No hay atención ese día</option>';
+  return '<option value="">Selecciona hora...</option>' + todos.map(h => {
+    const ocupado = isSlotOcupado(fechaStr, h);
+    return `<option value="${h}" ${ocupado ? 'disabled style="color:#888"' : ''}>${h}${ocupado ? ' — No disponible ⛔' : ''}</option>`;
+  }).join('');
+}
+
+async function actualizarHorarios() {
+  const fecha = document.getElementById('f_date')?.value;
+  const sel = document.getElementById('f_hora');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">Cargando horarios...</option>';
+  await sincronizarCitasFirebase(); // ← sincroniza con Firebase antes de mostrar
+  if (sel) sel.innerHTML = buildHorariosOptions(fecha);
+}
+
+function seleccionarHorario(hora) {
+  const sel = document.getElementById('f_hora');
+  if (sel) {
+    sel.value = hora;
+    sel.style.borderColor = 'var(--accent)';
+    sel.style.boxShadow = '0 0 0 3px rgba(0,200,255,0.2)';
+    setTimeout(() => { sel.style.borderColor = ''; sel.style.boxShadow = ''; }, 1500);
+  }
+}
+// ──────────────────────────────────────────────────────────────────────────
+
+function addMessage(html, isUser=false, extras=null){
+  const msgs = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = `msg ${isUser ? 'user' : 'bot'}`;
+  const initials = isUser ? '👤' : `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width:22px;height:22px"><defs><radialGradient id="bg2" cx="40%" cy="35%" r="60%"><stop offset="0%" stop-color="#FFB347"/><stop offset="100%" stop-color="#C04A00"/></radialGradient><radialGradient id="cap2" cx="35%" cy="30%" r="65%"><stop offset="0%" stop-color="#4EAAFF"/><stop offset="100%" stop-color="#0A3A7A"/></radialGradient></defs><ellipse cx="50" cy="72" rx="22" ry="20" fill="#1565C0"/><ellipse cx="34" cy="87" rx="9" ry="6" fill="#8B3A00"/><ellipse cx="66" cy="87" rx="9" ry="6" fill="#8B3A00"/><ellipse cx="28" cy="73" rx="7" ry="10" fill="url(#bg2)" transform="rotate(-15 28 73)"/><ellipse cx="72" cy="73" rx="7" ry="10" fill="url(#bg2)" transform="rotate(15 72 73)"/><ellipse cx="50" cy="44" rx="22" ry="20" fill="url(#bg2)"/><polygon points="30,30 24,12 38,26" fill="url(#bg2)"/><polygon points="70,30 76,12 62,26" fill="url(#bg2)"/><ellipse cx="50" cy="50" rx="14" ry="11" fill="#FFF5E0"/><circle cx="42" cy="42" r="5.5" fill="white"/><circle cx="58" cy="42" r="5.5" fill="white"/><circle cx="43" cy="43" r="3.2" fill="#1a1a1a"/><circle cx="59" cy="43" r="3.2" fill="#1a1a1a"/><circle cx="44.5" cy="41.5" r="1.2" fill="white"/><circle cx="60.5" cy="41.5" r="1.2" fill="white"/><ellipse cx="50" cy="50" rx="4" ry="3" fill="#111"/><path d="M44,55 Q50,61 56,55" stroke="#8B3A00" stroke-width="1.8" fill="none" stroke-linecap="round"/><ellipse cx="50" cy="32" rx="22" ry="8" fill="url(#cap2)"/><ellipse cx="50" cy="28" rx="18" ry="12" fill="url(#cap2)"/><ellipse cx="50" cy="33" rx="24" ry="4" fill="#1976D2"/><text x="50" y="31" font-family="Arial Black,sans-serif" font-size="7.5" font-weight="900" text-anchor="middle" fill="#FF8C00">TURBO</text></svg>`;
+  div.innerHTML = `
+    <div class="avatar ${isUser?'user-av':''}">${initials}</div>
+    <div>
+      <div class="bubble">${html}</div>
+      ${extras || ''}
+    </div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function showTyping(){
+  const msgs = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'msg bot';
+  div.id = 'typing';
+  div.innerHTML = `<div class="avatar" style="overflow:hidden;background:#1a2235"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width:22px;height:22px"><defs><radialGradient id="bg3" cx="40%" cy="35%" r="60%"><stop offset="0%" stop-color="#FFB347"/><stop offset="100%" stop-color="#C04A00"/></radialGradient><radialGradient id="cap3" cx="35%" cy="30%" r="65%"><stop offset="0%" stop-color="#4EAAFF"/><stop offset="100%" stop-color="#0A3A7A"/></radialGradient></defs><ellipse cx="50" cy="72" rx="22" ry="20" fill="#1565C0"/><ellipse cx="28" cy="73" rx="7" ry="10" fill="url(#bg3)" transform="rotate(-15 28 73)"/><ellipse cx="72" cy="73" rx="7" ry="10" fill="url(#bg3)" transform="rotate(15 72 73)"/><ellipse cx="50" cy="44" rx="22" ry="20" fill="url(#bg3)"/><polygon points="30,30 24,12 38,26" fill="url(#bg3)"/><polygon points="70,30 76,12 62,26" fill="url(#bg3)"/><ellipse cx="50" cy="50" rx="14" ry="11" fill="#FFF5E0"/><circle cx="42" cy="42" r="5.5" fill="white"/><circle cx="58" cy="42" r="5.5" fill="white"/><circle cx="43" cy="43" r="3.2" fill="#1a1a1a"/><circle cx="59" cy="43" r="3.2" fill="#1a1a1a"/><circle cx="44.5" cy="41.5" r="1.2" fill="white"/><circle cx="60.5" cy="41.5" r="1.2" fill="white"/><ellipse cx="50" cy="50" rx="4" ry="3" fill="#111"/><path d="M44,55 Q50,61 56,55" stroke="#8B3A00" stroke-width="1.8" fill="none" stroke-linecap="round"/><ellipse cx="50" cy="32" rx="22" ry="8" fill="url(#cap3)"/><ellipse cx="50" cy="28" rx="18" ry="12" fill="url(#cap3)"/><ellipse cx="50" cy="33" rx="24" ry="4" fill="#1976D2"/><text x="50" y="31" font-family="Arial Black,sans-serif" font-size="7.5" font-weight="900" text-anchor="middle" fill="#FF8C00">TURBO</text></svg></div><div><div class="bubble" style="padding:10px 16px"><div class="typing-indicator"><span></span><span></span><span></span></div></div></div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+function hideTyping(){ const t=document.getElementById('typing'); if(t) t.remove(); }
+
+function quickReply(text){ document.getElementById('userInput').value=text; sendMessage(); }
+
+function buildQuickReplies(options){
+  return `<div class="quick-replies">${options.map(o=>`<button class="qr" onclick="quickReply('${o}')">${o}</button>`).join('')}</div>`;
+}
+
+function buildAppointmentForm(){
+  const today = new Date().toISOString().split('T')[0];
+  const currentYear = new Date().getFullYear();
+  return `<div class="appt-form">
+    <h4>📅 Agendar Cita</h4>
+    <div class="form-grid">
+      <div class="form-field"><label>Nombre completo</label><input id="f_name" type="text" placeholder="Tu nombre"></div>
+      <div class="form-field"><label>Teléfono / WhatsApp</label><input id="f_phone" type="tel" placeholder="300 000 0000"></div>
+      <div class="form-field"><label>Placa del vehículo</label><input id="f_placa" type="text" placeholder="ABC-123"></div>
+      <div class="form-field"><label>Tipo de vehículo</label>
+        <select id="f_tipo"><option value="">Selecciona...</option><option>Moto 2T</option><option>Moto 4T</option><option>Motocarro</option><option>Liviano No Público (Particular)</option><option>Liviano Público (Taxi/Colectivo)</option><option>Liviano No Público Eléctrico</option><option>Liviano Público Eléctrico</option></select>
+      </div>
+      <div class="form-field"><label>Año del modelo</label><input id="f_anio" type="number" placeholder="Ej: 2019" min="1990" max="${currentYear}"></div>
+      <div class="form-field"><label>Marca del vehículo</label><input id="f_marca" type="text" placeholder="Ej: Chevrolet, Yamaha..."></div>
+      <div class="form-field"><label>Tipo de combustible</label>
+        <select id="f_combustible">
+          <option value="">Selecciona...</option>
+          <option value="Gas/Gasolina">⛽ Gas / Gasolina</option>
+          <option value="Diesel/ACPM">🛢️ Diesel / ACPM</option>
+          <option value="Eléctrico">⚡ Eléctrico</option>
+        </select>
+      </div>
+      <div class="form-field"><label>Fecha deseada</label><input id="f_date" type="date" min="${today}" onchange="actualizarHorarios()"></div>
+      <div class="form-field"><label>Hora disponible</label>
+        <select id="f_hora"><option value="">Selecciona primero la fecha...</option></select>
+      </div>
+    </div>
+    <button class="btn-confirm" onclick="confirmAppointment()">✅ Confirmar Cita</button>
+  </div>`;
+}
+
+function calcularPrecio(tipo, anio) {
+  const currentYear = new Date().getFullYear();
+  const antiguedad = currentYear - parseInt(anio);
+  // Determinar rango: 0-2, 3-7, 8-17, 17+
+  const rango = antiguedad <= 2 ? 0 : antiguedad <= 7 ? 1 : antiguedad <= 17 ? 2 : 3;
+  const tarifas = {
+    'Moto 2T':                        [246900, 247200, 247500, 247200],
+    'Moto 4T':                        [246900, 247200, 247500, 247200],
+    'Motocarro':                      [367500, 367800, 368100, 367800],
+    'Liviano No Público (Particular)':[367500, 367800, 368100, 367800],
+    'Liviano Público (Taxi/Colectivo)':[368100, 368400, 368800, 368400],
+    'Liviano No Público Eléctrico':   [275801, 276108, 276508, 276108],
+    'Liviano Público Eléctrico':      [275208, 275508, 275808, 275508],
+    'Motocarro':                      [367500, 367800, 368100, 367800],
+  };
+  const precios = tarifas[tipo];
+  if (!precios) return null;
+  const valor = precios[rango];
+  const rangoLabel = rango === 0 ? '0-2 años' : rango === 1 ? '3-7 años' : rango === 2 ? '8-17 años' : '17+ años';
+  return { valor, rangoLabel, antiguedad };
+}
+
+function formatPrecio(v) {
+  return '$' + v.toLocaleString('es-CO');
+}
+
+function buildPriceWidget() {
+  const currentYear = new Date().getFullYear();
+  return `
+  <div class="appt-form" style="margin-top:8px;">
+    <h4>🔍 Consultar Tarifa 2026</h4>
+    <div class="form-grid">
+      <div class="form-field">
+        <label>Tipo de vehículo</label>
+        <select id="pc_tipo" onchange="consultarPrecio()">
+          <option value="">Selecciona...</option>
+          <option>Moto 2T</option>
+          <option>Moto 4T</option>
+          <option>Motocarro</option>
+          <option>Liviano No Público (Particular)</option>
+          <option>Liviano Público (Taxi/Colectivo)</option>
+          <option>Liviano No Público Eléctrico</option>
+          <option>Liviano Público Eléctrico</option>
+          <option>Motocarro</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label>Año del modelo</label>
+        <input id="pc_anio" type="number" placeholder="Ej: 2018" min="1990" max="${currentYear}" oninput="consultarPrecio()">
+      </div>
+    </div>
+    <div id="pc_resultado" style="margin-top:12px;display:none;">
+      <div style="background:#0d1420;border:1px solid rgba(0,229,160,0.25);border-radius:12px;padding:14px 16px;">
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;font-weight:500;margin-bottom:6px;">Valor de tu revisión</div>
+        <div id="pc_tipo_label" style="font-size:13px;color:var(--text);margin-bottom:2px;"></div>
+        <div id="pc_rango_label" style="font-size:12px;color:var(--muted);margin-bottom:10px;"></div>
+        <div id="pc_valor_label" style="font-size:26px;font-weight:800;color:var(--success);font-family:'Bebas Neue',sans-serif;letter-spacing:1px;"></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;">Tarifa vigente según Resolución 202403040003125</div>
+      </div>
+    </div>
+    <div id="pc_pendiente" style="margin-top:10px;font-size:12px;color:var(--muted);text-align:center;">
+      Selecciona el tipo de vehículo y el año para ver el precio 👆
+    </div>
+  </div>`;
+}
+
+function consultarPrecio() {
+  const tipo = document.getElementById('pc_tipo')?.value;
+  const anio = document.getElementById('pc_anio')?.value;
+  const resultado = document.getElementById('pc_resultado');
+  const pendiente = document.getElementById('pc_pendiente');
+  if (!tipo || !anio || anio.length < 4) {
+    if (resultado) resultado.style.display = 'none';
+    if (pendiente) pendiente.style.display = 'block';
+    return;
+  }
+  const info = calcularPrecio(tipo, anio);
+  if (!info) return;
+  document.getElementById('pc_tipo_label').innerHTML = `<strong>${tipo}</strong> · Modelo ${anio}`;
+  document.getElementById('pc_rango_label').textContent = `Antigüedad: ${info.rangoLabel} (${info.antiguedad} año${info.antiguedad !== 1 ? 's' : ''})`;
+  document.getElementById('pc_valor_label').textContent = formatPrecio(info.valor);
+  if (resultado) resultado.style.display = 'block';
+  if (pendiente) pendiente.style.display = 'none';
+}
+
+async function confirmAppointment(){
+  const n=document.getElementById('f_name')?.value.trim();
+  const p=document.getElementById('f_phone')?.value.trim();
+  const pl=document.getElementById('f_placa')?.value.trim();
+  const t=document.getElementById('f_tipo')?.value;
+  const anio=document.getElementById('f_anio')?.value.trim();
+  const marca=document.getElementById('f_marca')?.value.trim();
+  const combustible=document.getElementById('f_combustible')?.value;
+  const d=document.getElementById('f_date')?.value;
+  const h=document.getElementById('f_hora')?.value;
+  if(!n||!p||!pl||!t||!anio||!marca||!combustible||!d||!h){
+    addMessage("⚠️ Por favor completa <strong>todos los campos</strong> para confirmar tu cita.");
+    return;
+  }
+  const fecha = new Date(d).toLocaleDateString('es-CO',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  const precioInfo = calcularPrecio(t, anio);
+
+  // Resincronizar con Firebase justo antes de verificar — captura bloqueos del panel
+  await sincronizarCitasFirebase();
+
+  // Verificar si el horario ya está ocupado
+  if (isSlotOcupado(d, h)) {
+    const disponibles = getHorariosDisponibles(d);
+    let msg = `⛔ ¡Ups! El horario de las <strong>${h}</strong> del <strong>${fecha}</strong> ya está reservado por otro cliente.`;
+    if (disponibles.length > 0) {
+      const tags = disponibles.map(s => `<span class='tag' style='cursor:pointer' onclick="seleccionarHorario('${s}')" title="Clic para seleccionar">🕐 ${s}</span>`).join(' ');
+      msg += `<br><br>📅 <strong>Estos horarios siguen disponibles para esa fecha, haz clic en uno para seleccionarlo:</strong><br><br>${tags}`;
+    } else {
+      msg += `<br><br>😔 No quedan horarios disponibles para ese día. Por favor elige otra fecha en el formulario.`;
+    }
+    addMessage(msg, false);
+    // Recargar el select manteniendo la fecha actual
+    actualizarHorarios();
+    return;
+  }
+
+  // Registrar la cita en Firebase
+  await registrarCita(d, h, { nombre: n, telefono: p, placa: pl, tipo: t, anio, marca, combustible });
+
+  // Enviar notificación al panel via Firebase
+  const notif = {
+    id: Date.now(),
+    nombre: n,
+    telefono: p,
+    placa: pl.toUpperCase(),
+    tipo: t,
+    marca,
+    combustible,
+    anio,
+    fecha,
+    fechaISO: d, // ← formato YYYY-MM-DD para comparaciones exactas
+    hora: h,
+    timestamp: new Date().toLocaleTimeString('es-CO'),
+    leida: false
+  };
+  // Guardar en Firebase: notificaciones (temporales) Y clientes (permanente)
+  try {
+    await fetch(`${FIREBASE_URL}/notificaciones/${notif.id}.json`, {
+      method: 'PUT',
+      body: JSON.stringify(notif)
+    });
+    // /clientes nunca se borra — base de datos permanente
+    await fetch(`${FIREBASE_URL}/clientes/${notif.id}.json`, {
+      method: 'PUT',
+      body: JSON.stringify(notif)
+    });
+  } catch(e) {
+    // Si falla Firebase, guardar local como respaldo
+    const notifs = JSON.parse(localStorage.getItem('cda_notificaciones') || '[]');
+    notifs.unshift(notif);
+    localStorage.setItem('cda_notificaciones', JSON.stringify(notifs.slice(0, 50)));
+  }
+
+  const precioRow = precioInfo
+    ? `<div class="confirm-row"><span>Año del modelo</span><span>${anio} (${precioInfo.rangoLabel})</span></div>
+       <div class="confirm-row" style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.08)">
+         <span style="color:var(--success);font-weight:600;">💰 Valor a pagar</span>
+         <span style="color:var(--success);font-size:16px;font-weight:700;">${formatPrecio(precioInfo.valor)}</span>
+       </div>`
+    : '';
+
+  const confirmCard = `<div class="confirm-card">
+    <h4>✅ ¡Cita Confirmada!</h4>
+    <div class="confirm-row"><span>Nombre</span><span>${n}</span></div>
+    <div class="confirm-row"><span>Teléfono</span><span>${p}</span></div>
+    <div class="confirm-row"><span>Placa</span><span>${pl.toUpperCase()}</span></div>
+    <div class="confirm-row"><span>Vehículo</span><span>${t}</span></div>
+    <div class="confirm-row"><span>Marca</span><span>${marca}</span></div>
+    <div class="confirm-row"><span>Combustible</span><span>${combustible}</span></div>
+    <div class="confirm-row"><span>Fecha</span><span>${fecha}</span></div>
+    <div class="confirm-row"><span>Hora</span><span>${h}</span></div>
+    ${precioRow}
+  </div>`;
+
+  const precioMensaje = precioInfo
+    ? ` El valor de tu revisión para un <strong>${t}</strong> modelo <strong>${anio}</strong> es de <strong style="color:var(--success)">${formatPrecio(precioInfo.valor)}</strong> 💳`
+    : '';
+
+  const qr = buildQuickReplies(["¿Qué documentos llevar?","Calificar servicio","Otra pregunta"]);
+  addMessage(`¡Tu cita ha sido agendada exitosamente, <strong>${n}</strong>! 🎉${precioMensaje}<br><br>Recuerda llegar 10 minutos antes con tu <strong>tarjeta de tránsito</strong>. ¡Te esperamos!`, false, confirmCard+qr);
+
+  // Guardar ID de la cita actual para calificación posterior
+  window._ultimaCitaId = notif.id;
+  window._ultimaCitaNombre = n;
+}
+
+function buildStarWidget(citaId, nombre) {
+  return `<div class="star-widget" id="starWidget-${citaId}" style="background:linear-gradient(135deg,rgba(17,34,64,0.95),rgba(15,48,96,0.7));border:1px solid rgba(255,180,0,0.3);border-radius:16px;padding:18px 20px;margin-top:8px;text-align:center;">
+    <div style="font-size:14px;font-weight:700;color:#ffcc00;margin-bottom:4px;">⭐ Califica tu experiencia</div>
+    <div style="font-size:12px;color:#7aaccc;margin-bottom:14px;">Tu opinión nos ayuda a mejorar</div>
+    <div class="stars" style="display:flex;justify-content:center;gap:8px;margin-bottom:14px;">
+      ${[1,2,3,4,5].map(i=>`<span onclick="seleccionarEstrella(${i},'${citaId}','${nombre}')" 
+        id="star-${citaId}-${i}"
+        style="font-size:34px;cursor:pointer;transition:transform .15s;filter:grayscale(1);opacity:.4;"
+        onmouseover="hoverEstrellas(${i},'${citaId}')" 
+        onmouseout="resetEstrellas('${citaId}')">⭐</span>`).join('')}
+    </div>
+    <div id="starLabel-${citaId}" style="font-size:13px;color:#7aaccc;min-height:20px;margin-bottom:12px;"></div>
+    <textarea id="comentario-${citaId}" placeholder="Deja un comentario (opcional)..." 
+      style="width:100%;background:rgba(10,25,60,0.8);border:1px solid rgba(255,140,0,0.2);border-radius:10px;padding:10px;color:#f0f6ff;font-family:inherit;font-size:13px;resize:none;height:70px;outline:none;"></textarea>
+    <button onclick="enviarCalificacion('${citaId}','${nombre}')"
+      style="margin-top:10px;width:100%;background:linear-gradient(135deg,#c86000,#ff9a20);color:#fff;border:none;border-radius:10px;padding:10px;font-weight:700;font-size:14px;cursor:pointer;">
+      ✅ Enviar calificación
+    </button>
+  </div>`;
+}
+
+let _estrellasSeleccionadas = {};
+const starLabels = ['','😞 Muy malo','😕 Malo','😐 Regular','😊 Bueno','🤩 ¡Excelente!'];
+
+function hoverEstrellas(n, id) {
+  for(let i=1;i<=5;i++){
+    const s = document.getElementById(`star-${id}-${i}`);
+    if(s){ s.style.filter = i<=n?'grayscale(0)':'grayscale(1)'; s.style.opacity = i<=n?'1':'.3'; s.style.transform = i<=n?'scale(1.15)':'scale(1)'; }
+  }
+  const lbl = document.getElementById(`starLabel-${id}`);
+  if(lbl) lbl.textContent = starLabels[n];
+}
+
+function resetEstrellas(id) {
+  const sel = _estrellasSeleccionadas[id] || 0;
+  for(let i=1;i<=5;i++){
+    const s = document.getElementById(`star-${id}-${i}`);
+    if(s){ s.style.filter = i<=sel?'grayscale(0)':'grayscale(1)'; s.style.opacity = i<=sel?'1':'.4'; s.style.transform='scale(1)'; }
+  }
+  const lbl = document.getElementById(`starLabel-${id}`);
+  if(lbl) lbl.textContent = sel ? starLabels[sel] : '';
+}
+
+function seleccionarEstrella(n, id, nombre) {
+  _estrellasSeleccionadas[id] = n;
+  resetEstrellas(id);
+}
+
+async function enviarCalificacion(citaId, nombre) {
+  const puntos = _estrellasSeleccionadas[citaId] || 0;
+  if (!puntos) { alert('Por favor selecciona al menos una estrella ⭐'); return; }
+  const comentario = document.getElementById(`comentario-${citaId}`)?.value.trim() || '';
+  const cal = {
+    citaId, nombre, puntos, comentario,
+    fecha: new Date().toLocaleDateString('es-CO',{year:'numeric',month:'long',day:'numeric'}),
+    ts: Date.now()
+  };
+  try {
+    await fetch(`${FIREBASE_URL}/calificaciones/${citaId}.json`, { method:'PUT', body: JSON.stringify(cal) });
+    await fetch(`${FIREBASE_URL}/clientes/${citaId}/calificacion.json`, { method:'PUT', body: JSON.stringify(puntos) });
+    await fetch(`${FIREBASE_URL}/clientes/${citaId}/comentario.json`, { method:'PUT', body: `"${comentario.replace(/"/g,"'")}"` });
+  } catch(e) { console.error('Error guardando calificación:', e); }
+  const widget = document.getElementById(`starWidget-${citaId}`);
+  if(widget) widget.innerHTML = `<div style="text-align:center;padding:14px;">
+    <div style="font-size:36px;margin-bottom:8px;">${['','😞','😕','😐','😊','🤩'][puntos]}</div>
+    <div style="font-weight:700;color:#ffcc00;font-size:15px;">¡Gracias por tu calificación!</div>
+    <div style="font-size:13px;color:#7aaccc;margin-top:4px;">${'⭐'.repeat(puntos)} · ${starLabels[puntos]}</div>
+    ${comentario ? `<div style="font-size:12px;color:#aac8e8;margin-top:8px;font-style:italic;">"${comentario}"</div>` : ''}
+  </div>`;
+  addMessage(`¡Gracias por calificarnos, <strong>${nombre}</strong>! Tu opinión con <strong>${puntos} estrella${puntos>1?'s':''}</strong> ha sido registrada. 🌟 ¡Nos vemos en la próxima visita!`, false, buildQuickReplies(["Agendar cita","Hablar con asesor"]));
+}
+
+function detectIntent(text){
+  const t = text.toLowerCase();
+  if(/\b(cita|agendar|reservar|apartar|programar)\b/.test(t)) return 'appointment';
+  if(/\b(hola|buenos|buenas|saludos|hey)\b/.test(t)) return 'greeting';
+  if(/\b(gracias|muchas gracias|thank)\b/.test(t)) return 'thanks';
+  if(/\b(adios|hasta|chao|bye)\b/.test(t)) return 'bye';
+  if(/\b(asesor|humano|persona|whatsapp|contacto|vendedor|hablar con)\b/.test(t)) return 'asesor';
+  if(/\b(calificar|calificacion|puntaje|estrella|resena|opinion|valorar)\b/.test(t)) return 'calificar';
+  if(/\b(soat|seguro obligatorio|cotizar soat|precio soat|cuanto cuesta soat|valor soat)\b/.test(t)) return 'soat';
+  for(const faq of FAQS){
+    if(faq.keys.some(k=>t.includes(k))) return faq.resp;
+  }
+  return 'ai';
+}
+
+async function getAIResponse(userMsg){
+  conversationHistory.push({role:'user', content: userMsg});
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        system:`Eres TURBO, el asistente virtual del CDA Barroblanco (Centro de Diagnóstico Automotor). 
+Responde siempre en español, de forma amable, profesional y concisa. 
+Información del CDA:
+- Dirección: Calle 17 # 3-50, Barrio Hoyo Grande – Piedecuesta. Google Maps: https://maps.app.goo.gl/E2XCy3fMaCg5ipLZ6?g_st=awb — siempre incluye este link cuando pregunten por la dirección o ubicación.
+- Servicios: Revisión técnico-mecánica, venta de SOAT y revisiones preventivas.
+- Horario: Lunes a viernes 7:00 AM–6:30 PM, sábados 7:00 AM–4:30 PM, domingos y festivos 8:00 AM–12:00 M.
+- TARIFAS 2026 (precio total):
+  * Motocicletas: 0-2 años $246.900 | 3-7 años $247.200 | 8-17 años $247.500 | 17+ años $247.200
+  * Livianos y Motocarros No Públicos: 0-2 años $367.500 | 3-7 años $367.800 | 8-17 años $368.100 | 17+ años $367.800
+  * Livianos Públicos (taxi/colectivo): 0-2 años $368.100 | 3-7 años $368.400 | 8-17 años $368.800 | 17+ años $368.400
+  * Livianos No Públicos Eléctricos: 0-2 años $275.801 | 3-7 años $276.108 | 8-17 años $276.508 | 17+ años $276.108
+  * Livianos Públicos Eléctricos: 0-2 años $275.208 | 3-7 años $275.508 | 8-17 años $275.808 | 17+ años $275.508
+- Requisitos: SOAT vigente, tarjeta de propiedad, cédula.
+- Duración revisión: 30-45 minutos.
+Si preguntan por citas, indícales que pueden agendar directamente aquí.
+Tu nombre es TURBO. No uses asteriscos para negritas, responde en texto plano con máximo 3 oraciones.`,
+        messages: conversationHistory.slice(-6),
+      })
+    });
+    const data = await resp.json();
+    const reply = data.content?.[0]?.text || "Disculpa, no pude procesar tu consulta. ¿Puedo ayudarte con otra cosa?";
+    conversationHistory.push({role:'assistant', content: reply});
+    return reply;
+  } catch(e){
+    return "En este momento no puedo conectarme, pero puedo ayudarte con preguntas sobre horarios, precios y citas. ¿Qué necesitas?";
+  }
+}
+
+function buildSoatWidget() {
+  return `<div class="appt-form" style="margin-top:8px;">
+    <h4>🛡️ Cotizador SOAT 2026</h4>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:14px;">Tarifas oficiales Seguros OMS — Vigentes 2026</p>
+    <div class="form-grid">
+      <div class="form-field" style="grid-column:span 2;">
+        <label>Categoría del vehículo</label>
+        <select id="soat_categoria" onchange="actualizarSubcatSOAT()">
+          <option value="">Selecciona categoría...</option>
+          <option value="motos">🏍️ Motos</option>
+          <option value="camperos">🚙 Camperos y Camionetas</option>
+          <option value="autos">🚗 Autos Familiares</option>
+          <option value="negocios">💼 Autos de Negocios</option>
+          <option value="6mas">🚐 Vehículos para 6 o más pasajeros</option>
+          <option value="carga">🚚 Carga o Mixto</option>
+          <option value="oficiales">🏛️ Oficiales Especiales</option>
+          <option value="buses">🚌 Buses y Busetas Servicio Público</option>
+          <option value="intermunicipal">🚍 Servicio Público Intermunicipal</option>
+        </select>
+      </div>
+      <div class="form-field" style="grid-column:span 2;" id="soat_subcat_wrap">
+        <label>Clase de vehículo</label>
+        <select id="soat_subcat" onchange="calcularSOAT()">
+          <option value="">Selecciona primero la categoría...</option>
+        </select>
+      </div>
+    </div>
+    <div id="soat_resultado" style="display:none;margin-top:14px;">
+      <div style="background:linear-gradient(135deg,rgba(5,30,60,0.95),rgba(10,50,90,0.8));border:1px solid rgba(0,180,255,0.3);border-radius:14px;padding:16px 18px;">
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;">Desglose SOAT 2026</div>
+        <div id="soat_clase_label" style="font-size:14px;font-weight:700;color:#fff;margin-bottom:12px;"></div>
+        <div style="display:flex;flex-direction:column;gap:6px;" id="soat_desglose"></div>
+        <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,140,0,0.2);display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:13px;color:var(--muted);font-weight:600;">TOTAL A PAGAR</span>
+          <span id="soat_total" style="font-size:28px;font-weight:900;color:#00e5a0;font-family:'Bebas Neue',sans-serif;letter-spacing:1px;"></span>
+        </div>
+        <div style="font-size:10px;color:var(--muted);margin-top:8px;">✅ Incluye prima + contribución ADRES + tasa RUNT · Tarifas Seguros OMS 2026</div>
+      </div>
+    </div>
+    <div id="soat_pendiente" style="margin-top:10px;font-size:12px;color:var(--muted);text-align:center;">Selecciona la categoría para ver el precio del SOAT 👆</div>
+  </div>`;
+}
+
+// Tarifas SOAT 2026 completas del PDF
+const SOAT_DATA = {
+  motos: [
+    { label:'Motos (genérico)', prima:80100, contrib:41600, runt:2400, total:124100 },
+    { label:'Menos de 100 cc', prima:167000, contrib:86800, runt:2400, total:256200 },
+    { label:'De 100 cc a 200 cc', prima:224300, contrib:116600, runt:2400, total:343300 },
+    { label:'Más de 200 cc', prima:499400, contrib:259600, runt:2400, total:761400 },
+    { label:'Motocarros / Triciclo / Cuadriciclo', prima:253000, contrib:131500, runt:2400, total:386900 },
+    { label:'Motocarros 5 pasajeros', prima:253000, contrib:131500, runt:2400, total:386900 },
+  ],
+  camperos: [
+    { label:'Menos de 1500 cc — 0 a 9 años', prima:520000, contrib:270400, runt:2400, total:792800 },
+    { label:'Menos de 1500 cc — 10 años o más', prima:625400, contrib:325200, runt:2400, total:953000 },
+    { label:'1500 a 2500 cc — 0 a 9 años', prima:621200, contrib:323000, runt:2400, total:946600 },
+    { label:'1500 a 2500 cc — 10 años o más', prima:736200, contrib:382800, runt:2400, total:1121400 },
+    { label:'Más de 2500 cc — 0 a 9 años', prima:728900, contrib:379000, runt:2400, total:1110300 },
+    { label:'Más de 2500 cc — 10 años o más', prima:836600, contrib:435000, runt:2400, total:1274000 },
+  ],
+  autos: [
+    { label:'Menos de 1500 cc — 0 a 9 años', prima:292700, contrib:152200, runt:2400, total:447300 },
+    { label:'Menos de 1500 cc — 10 años o más', prima:388500, contrib:202000, runt:2400, total:592900 },
+    { label:'1500 a 2500 cc — 0 a 9 años', prima:356800, contrib:185500, runt:2400, total:544700 },
+    { label:'1500 a 2500 cc — 10 años o más', prima:444100, contrib:230900, runt:2400, total:677400 },
+    { label:'Más de 2500 cc — 0 a 9 años', prima:416900, contrib:216700, runt:2400, total:636000 },
+    { label:'Más de 2500 cc — 10 años o más', prima:494700, contrib:257200, runt:2400, total:754300 },
+  ],
+  negocios: [
+    { label:'Menos de 1500 cc — 0 a 9 años', prima:183900, contrib:95600, runt:2400, total:281900 },
+    { label:'Menos de 1500 cc — 10 años o más', prima:230000, contrib:119600, runt:2400, total:352000 },
+    { label:'1500 a 2500 cc — 0 a 9 años', prima:228700, contrib:118900, runt:2400, total:350000 },
+    { label:'1500 a 2500 cc — 10 años o más', prima:282900, contrib:147100, runt:2400, total:432400 },
+    { label:'Más de 2500 cc — 0 a 9 años', prima:295400, contrib:153600, runt:2400, total:451400 },
+    { label:'Más de 2500 cc — 10 años o más', prima:346700, contrib:180200, runt:2400, total:529300 },
+  ],
+  '6mas': [
+    { label:'Menos de 2500 cc — 0 a 9 años', prima:523000, contrib:271900, runt:2400, total:797300 },
+    { label:'Menos de 2500 cc — 10 años o más', prima:668000, contrib:347300, runt:2400, total:1017700 },
+    { label:'2500 cc o más — 0 a 9 años', prima:700600, contrib:364300, runt:2400, total:1067300 },
+    { label:'2500 cc — 10 años o más', prima:841600, contrib:437600, runt:2400, total:1281600 },
+  ],
+  carga: [
+    { label:'Menos de 5 toneladas', prima:582900, contrib:303100, runt:2400, total:888400 },
+    { label:'De 5 a 15 toneladas', prima:842400, contrib:438000, runt:2400, total:1282800 },
+    { label:'Más de 15 toneladas', prima:1065500, contrib:554000, runt:2400, total:1621900 },
+  ],
+  oficiales: [
+    { label:'Menos de 1500 cc', prima:656000, contrib:341100, runt:2400, total:999500 },
+    { label:'1500 a 2500 cc', prima:827500, contrib:430300, runt:2400, total:1260200 },
+    { label:'Más de 2500 cc', prima:992300, contrib:515900, runt:2400, total:1510600 },
+  ],
+  buses: [
+    { label:'Buses y Busetas de Servicio Urbano', prima:441400, contrib:229500, runt:2400, total:673300 },
+  ],
+  intermunicipal: [
+    { label:'Intermunicipal — Menor de 10 pasajeros', prima:436300, contrib:226800, runt:2400, total:665500 },
+    { label:'Intermunicipal — 10 o más pasajeros', prima:633500, contrib:329400, runt:2400, total:965300 },
+  ],
+};
+
+function actualizarSubcatSOAT() {
+  const cat = document.getElementById('soat_categoria')?.value;
+  const sel = document.getElementById('soat_subcat');
+  const res = document.getElementById('soat_resultado');
+  const pend = document.getElementById('soat_pendiente');
+  if (res) res.style.display = 'none';
+  if (pend) { pend.style.display = 'block'; pend.textContent = 'Selecciona la clase de vehículo para ver el precio 👆'; }
+  if (!cat || !SOAT_DATA[cat]) { sel.innerHTML = '<option value="">Selecciona primero la categoría...</option>'; return; }
+  sel.innerHTML = '<option value="">Selecciona clase...</option>' +
+    SOAT_DATA[cat].map((item, i) => `<option value="${cat}_${i}">${item.label}</option>`).join('');
+}
+
+function calcularSOAT() {
+  const val = document.getElementById('soat_subcat')?.value;
+  const res = document.getElementById('soat_resultado');
+  const pend = document.getElementById('soat_pendiente');
+  if (!val) { if(res) res.style.display='none'; return; }
+  const [cat, idx] = val.split('_');
+  const item = SOAT_DATA[cat]?.[parseInt(idx)];
+  if (!item) return;
+  const fmt = n => '$' + n.toLocaleString('es-CO');
+  document.getElementById('soat_clase_label').textContent = item.label;
+  document.getElementById('soat_desglose').innerHTML = `
+    <div style="display:flex;justify-content:space-between;font-size:13px;"><span style="color:var(--muted);">Prima neta</span><span>${fmt(item.prima)}</span></div>
+    <div style="display:flex;justify-content:space-between;font-size:13px;"><span style="color:var(--muted);">Contribución ADRES</span><span>${fmt(item.contrib)}</span></div>
+    <div style="display:flex;justify-content:space-between;font-size:13px;"><span style="color:var(--muted);">Tasa RUNT</span><span>${fmt(item.runt)}</span></div>`;
+  document.getElementById('soat_total').textContent = fmt(item.total);
+  if (res) res.style.display = 'block';
+  if (pend) pend.style.display = 'none';
+}
+
+async function sendMessage(){
+  const input = document.getElementById('userInput');
+  const text = input.value.trim();
+  if(!text) return;
+  input.value = '';
+  input.style.height = 'auto';
+  addMessage(text, true);
+  showTyping();
+
+  await new Promise(r=>setTimeout(r,600+Math.random()*600));
+  hideTyping();
+
+  const intent = detectIntent(text);
+
+  if(intent === 'greeting'){
+    addMessage(`¡Hola! 👋 Soy <strong>TURBO</strong>, tu asistente virtual del <strong>CDA Barroblanco</strong>. Estoy aquí para ayudarte las 24 horas del día. ¿En qué puedo asistirte hoy?`,
+      false, buildQuickReplies(["Agendar cita","Ver servicios","Precios 2026","Horarios","Ubicación","Hablar con asesor"]));
+  } else if(intent === 'appointment'){
+    addMessage("¡Perfecto! Voy a ayudarte a agendar tu cita de revisión técnico-mecánica. Por favor completa el siguiente formulario 👇", false, buildAppointmentForm());
+  } else if(intent === 'asesor'){
+    addMessage(KNOWLEDGE.asesor, false, buildQuickReplies(["Agendar cita","Ver servicios","Precios 2026"]));
+  } else if(intent === 'soat'){
+    addMessage('🛡️ ¡Con gusto! Aquí tienes el cotizador oficial del SOAT 2026. Selecciona la categoría y clase de tu vehículo para ver el precio exacto con todo el desglose:', false, buildSoatWidget() + buildQuickReplies(["Agendar cita","Precios revisión","Hablar con asesor"]));
+  } else if(intent === 'calificar'){
+    const cid = window._ultimaCitaId || 'general';
+    const cnombre = window._ultimaCitaNombre || 'cliente';
+    addMessage('¡Nos encantaría saber cómo fue tu experiencia! 🌟 Tómate un momento para calificarnos:', false, buildStarWidget(cid, cnombre));
+  } else if(intent === 'thanks'){
+    addMessage("¡Con gusto! 😊 Es un placer ayudarte. Si necesitas algo más, aquí estaré.", false,
+      buildQuickReplies(["Agendar cita","Hablar con asesor","Precios 2026"]));
+  } else if(intent === 'bye'){
+    addMessage("¡Hasta pronto! 👋 Recuerda que estoy disponible 24/7. ¡Que tengas un excelente día en el CDA Barroblanco! 🚗✅");
+  } else if(KNOWLEDGE[intent]){
+    const qrs = {
+      horario: ["Agendar cita","Ver servicios","Precios 2026","Hablar con asesor"],
+      servicios: ["Agendar cita","Precios 2026","Hablar con asesor"],
+      precio: ["Agendar cita","¿Qué documentos llevar?","Hablar con asesor"],
+      requisitos: ["Agendar cita","Precios 2026","Hablar con asesor"],
+      ubicacion: ["Agendar cita","Ver horarios","Hablar con asesor"],
+      duracion: ["Agendar cita","Precios 2026","Hablar con asesor"],
+    };
+    if (intent === 'precio') {
+      addMessage(KNOWLEDGE[intent], false, buildPriceWidget() + buildQuickReplies(qrs.precio));
+    } else {
+      addMessage(KNOWLEDGE[intent], false, buildQuickReplies(qrs[intent]||["Agendar cita","Hablar con asesor"]));
+    }
+  } else {
+    const aiResp = await getAIResponse(text);
+    addMessage(aiResp, false, buildQuickReplies(["Agendar cita","Ver servicios","Precios 2026","Hablar con asesor"]));
+  }
+}
+
+// Auto-resize textarea
+document.getElementById('userInput').addEventListener('input', function(){
+  this.style.height='auto';
+  this.style.height=this.scrollHeight+'px';
+});
+document.getElementById('userInput').addEventListener('keydown', function(e){
+  if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendMessage(); }
+});
+
+// Set min date for appointments
+window.addEventListener('load', async ()=>{
+  // Sincronizar citas desde Firebase al arrancar
+  await sincronizarCitasFirebase();
+  // Resincronizar cada 30 segundos para capturar bloqueos del panel en tiempo real
+  setInterval(sincronizarCitasFirebase, 30000);
+  // Greeting on load
+  setTimeout(()=>{
+    addMessage(`¡Bienvenido/a al <strong>CDA Barroblanco</strong>! 🚗⚡ Soy <strong>TURBO</strong>, tu asistente virtual. Estoy disponible <strong>24/7</strong> para ayudarte a agendar citas, consultar nuestras <strong>tarifas 2026</strong> y resolver todas tus dudas sobre la revisión técnico-mecánica. ¿Cómo puedo ayudarte hoy?`,
+    false, buildQuickReplies(["Agendar cita","Ver servicios","Precios 2026","Cotizar SOAT","Horarios","Hablar con asesor"]));
+  }, 400);
+});
+</script>
+</body>
+</html>

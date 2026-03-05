@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Panel Comercial – CDA Barroblanco</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e1a;
+  --surface: #111827;
+  --surface2: #1a2235;
+  --surface3: #1e2d42;
+  --border: rgba(255,255,255,0.08);
+  --accent: #f59e0b;
+  --accent2: #d97706;
+  --blue: #3b82f6;
+  --green: #10b981;
+  --red: #ef4444;
+  --orange: #f97316;
+  --text: #f1f5f9;
+  --muted: rgba(241,245,249,0.5);
+  --dim: rgba(241,245,249,0.25);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+
+/* ── NOISE TEXTURE OVERLAY ── */
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:.4;}
+
+/* ── LOGIN ── */
+.login-screen{position:fixed;inset:0;background:radial-gradient(ellipse at 30% 20%,rgba(245,158,11,0.12) 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,rgba(59,130,246,0.08) 0%,transparent 50%),var(--bg);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px;}
+.login-box{background:var(--surface);border:1px solid rgba(245,158,11,0.2);border-radius:24px;padding:44px 40px;width:100%;max-width:400px;position:relative;box-shadow:0 40px 80px rgba(0,0,0,0.5);}
+.login-glow{position:absolute;top:-1px;left:50%;transform:translateX(-50%);width:200px;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent);border-radius:2px;}
+.login-badge{width:64px;height:64px;background:linear-gradient(135deg,var(--accent2),var(--accent));border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 22px;box-shadow:0 8px 24px rgba(245,158,11,0.35);}
+.login-title{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;text-align:center;margin-bottom:4px;}
+.login-sub{font-size:13px;color:var(--muted);text-align:center;margin-bottom:28px;}
+.login-field{margin-bottom:14px;}
+.login-lbl{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;display:block;}
+.login-inp{width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;padding:13px 16px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);outline:none;transition:border .2s;}
+.login-inp:focus{border-color:rgba(245,158,11,0.5);}
+.login-inp::placeholder{color:var(--dim);}
+.login-btn{width:100%;background:linear-gradient(135deg,var(--accent2),var(--accent));color:#0a0e1a;border:none;border-radius:12px;padding:14px;font-family:'Syne',sans-serif;font-size:15px;font-weight:800;cursor:pointer;margin-top:6px;transition:all .2s;letter-spacing:.3px;}
+.login-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(245,158,11,0.4);}
+.login-err{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);border-radius:10px;padding:10px 14px;font-size:13px;color:#fca5a5;margin-top:12px;display:none;text-align:center;}
+
+/* ── APP SHELL ── */
+.app{display:none;flex-direction:column;min-height:100vh;position:relative;z-index:1;}
+
+/* ── HEADER ── */
+.header{padding:16px 24px;background:rgba(17,24,39,0.9);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:100;}
+.header-left{display:flex;align-items:center;gap:14px;}
+.h-logo{width:40px;height:40px;background:linear-gradient(135deg,var(--accent2),var(--accent));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.h-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;line-height:1;}
+.h-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.header-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.pill{display:flex;align-items:center;gap:6px;border-radius:100px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;transition:all .18s;border:1px solid var(--border);background:var(--surface2);}
+.pill:hover{background:var(--surface3);}
+.pill.live{background:rgba(16,185,129,0.1);border-color:rgba(16,185,129,0.25);color:#6ee7b7;}
+.pill.danger{background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.2);color:#fca5a5;}
+.live-dot{width:7px;height:7px;border-radius:50%;background:#10b981;animation:livePulse 2s infinite;}
+@keyframes livePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+.notif-badge{background:var(--red);color:#fff;border-radius:100px;padding:4px 10px;font-size:11px;font-weight:700;display:none;animation:popIn .3s ease;}
+@keyframes popIn{from{transform:scale(0)}to{transform:scale(1)}}
+
+/* ── STATS BAR ── */
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:20px 20px 0;max-width:1000px;margin:0 auto;width:100%;}
+@media(min-width:640px){.stats{grid-template-columns:repeat(4,1fr);}}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px 18px;display:flex;align-items:center;gap:14px;transition:all .2s;}
+.stat:hover{border-color:rgba(245,158,11,0.2);transform:translateY(-1px);}
+.stat-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.stat-icon.amber{background:rgba(245,158,11,0.15);}
+.stat-icon.red{background:rgba(239,68,68,0.12);}
+.stat-icon.green{background:rgba(16,185,129,0.12);}
+.stat-icon.blue{background:rgba(59,130,246,0.12);}
+.stat-lbl{font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px;}
+.stat-val{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;line-height:1;}
+.stat-val.amber{color:var(--accent);}
+.stat-val.red{color:#f87171;}
+.stat-val.green{color:#34d399;}
+.stat-val.blue{color:#60a5fa;}
+
+/* ── MAIN ── */
+.main{padding:20px;max-width:1000px;margin:0 auto;width:100%;flex:1;}
+
+/* ── SECTION TITLE ── */
+.section-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:8px;text-transform:uppercase;letter-spacing:.5px;}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border);margin-left:6px;}
+
+/* ── SEGUIMIENTO CARDS ── */
+.seg-list{display:flex;flex-direction:column;gap:12px;}
+.seg-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;overflow:hidden;transition:all .22s;animation:slideIn .35s ease;}
+@keyframes slideIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.seg-card:hover{border-color:rgba(245,158,11,0.2);box-shadow:0 8px 30px rgba(0,0,0,0.3);}
+.seg-card.nueva{border-left:3px solid var(--accent);}
+.seg-card.contactado{border-left:3px solid var(--blue);}
+.seg-card.reagendado{border-left:3px solid var(--green);}
+.seg-card.perdido{border-left:3px solid var(--red);opacity:.7;}
+
+.seg-head{padding:16px 18px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;cursor:pointer;}
+.seg-head:hover .seg-nombre{color:var(--accent);}
+.seg-nombre{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;transition:color .18s;}
+.seg-meta{font-size:12px;color:var(--muted);margin-top:3px;}
+.seg-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.estado-badge{padding:4px 12px;border-radius:100px;font-size:11px;font-weight:700;white-space:nowrap;}
+.estado-badge.nueva{background:rgba(245,158,11,0.15);color:var(--accent);border:1px solid rgba(245,158,11,0.25);}
+.estado-badge.contactado{background:rgba(59,130,246,0.12);color:#60a5fa;border:1px solid rgba(59,130,246,0.2);}
+.estado-badge.reagendado{background:rgba(16,185,129,0.12);color:#34d399;border:1px solid rgba(16,185,129,0.2);}
+.estado-badge.perdido{background:rgba(239,68,68,0.1);color:#f87171;border:1px solid rgba(239,68,68,0.18);}
+.chevron{font-size:14px;color:var(--dim);transition:transform .2s;}
+.chevron.open{transform:rotate(180deg);}
+
+.seg-body{display:none;padding:0 18px 18px;border-top:1px solid var(--border);}
+.seg-body.open{display:block;}
+.seg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin:14px 0;}
+.seg-item{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 12px;}
+.seg-item-lbl{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-bottom:2px;}
+.seg-item-val{font-size:13px;font-weight:600;color:var(--text);}
+.seg-item-val.amber{color:var(--accent);}
+
+/* ESTADO SELECTOR */
+.estado-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+.estado-btn{padding:6px 14px;border-radius:100px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid transparent;transition:all .18s;font-family:'DM Sans',sans-serif;}
+.estado-btn:hover{transform:translateY(-1px);}
+.estado-btn.nueva-btn{background:rgba(245,158,11,0.1);color:var(--accent);border-color:rgba(245,158,11,0.3);}
+.estado-btn.nueva-btn.active{background:rgba(245,158,11,0.25);border-color:var(--accent);}
+.estado-btn.contactado-btn{background:rgba(59,130,246,0.1);color:#60a5fa;border-color:rgba(59,130,246,0.25);}
+.estado-btn.contactado-btn.active{background:rgba(59,130,246,0.25);border-color:#3b82f6;}
+.estado-btn.reagendado-btn{background:rgba(16,185,129,0.1);color:#34d399;border-color:rgba(16,185,129,0.2);}
+.estado-btn.reagendado-btn.active{background:rgba(16,185,129,0.22);border-color:#10b981;}
+.estado-btn.perdido-btn{background:rgba(239,68,68,0.08);color:#f87171;border-color:rgba(239,68,68,0.2);}
+.estado-btn.perdido-btn.active{background:rgba(239,68,68,0.2);border-color:#ef4444;}
+
+/* NOTAS */
+.notas-area{width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);resize:vertical;min-height:80px;outline:none;transition:border .2s;}
+.notas-area:focus{border-color:rgba(245,158,11,0.4);}
+.notas-area::placeholder{color:var(--dim);}
+.save-btn{margin-top:10px;background:linear-gradient(135deg,var(--accent2),var(--accent));color:#0a0e1a;border:none;border-radius:10px;padding:10px 22px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;}
+.save-btn:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(245,158,11,0.35);}
+.wa-btn{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#128C7E,#25D366);color:#fff;text-decoration:none;border-radius:10px;padding:10px 18px;font-size:13px;font-weight:700;margin-top:8px;margin-left:8px;transition:all .2s;}
+.wa-btn:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(37,211,102,0.35);}
+
+/* HISTORIAL NOTAS */
+.historial-nota{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-top:8px;}
+.historial-nota-meta{font-size:11px;color:var(--dim);margin-bottom:4px;}
+.historial-nota-texto{font-size:13px;color:var(--text);}
+
+/* EMPTY */
+.empty{text-align:center;padding:60px 20px;color:var(--muted);}
+.empty-icon{font-size:52px;margin-bottom:14px;}
+
+/* FILTROS */
+.filtros{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+.filtro-btn{padding:7px 16px;border-radius:100px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--muted);transition:all .18s;font-family:'DM Sans',sans-serif;}
+.filtro-btn:hover,.filtro-btn.active{background:rgba(245,158,11,0.15);border-color:rgba(245,158,11,0.3);color:var(--accent);}
+
+/* TOAST */
+.toast-wrap{position:fixed;bottom:24px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:10px;pointer-events:none;}
+.toast{background:var(--surface);border:1px solid rgba(245,158,11,0.3);border-left:4px solid var(--accent);border-radius:14px;padding:14px 18px;display:flex;align-items:flex-start;gap:12px;min-width:280px;max-width:340px;box-shadow:0 16px 40px rgba(0,0,0,0.4);animation:toastIn .35s ease;pointer-events:all;}
+@keyframes toastIn{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:none}}
+.toast-icon{font-size:22px;flex-shrink:0;}
+.toast-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:2px;}
+.toast-body{font-size:12px;color:var(--muted);}
+.toast-close{margin-left:auto;background:none;border:none;color:var(--dim);cursor:pointer;font-size:16px;padding:0;flex-shrink:0;}
+
+/* MOBILE */
+@media(max-width:480px){
+  .header{padding:12px 16px;}
+  .main,.stats{padding:14px;}
+  .stats{gap:8px;}
+  .seg-head{padding:14px 14px;}
+  .seg-body{padding:0 14px 14px;}
+  .login-box{padding:32px 24px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN ── -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-box">
+    <div class="login-glow"></div>
+    <div class="login-badge">👔</div>
+    <div class="login-title">Panel Comercial</div>
+    <div class="login-sub">CDA Barroblanco · Área de Seguimiento</div>
+    <div class="login-field">
+      <label class="login-lbl">Correo</label>
+      <input class="login-inp" type="email" id="loginEmail" placeholder="correo@empresa.com" onkeydown="if(event.key==='Enter')document.getElementById('loginPass').focus()">
+    </div>
+    <div class="login-field">
+      <label class="login-lbl">Contraseña</label>
+      <input class="login-inp" type="password" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')entrar()">
+    </div>
+    <button class="login-btn" onclick="entrar()" id="loginBtn">🔐 Ingresar</button>
+    <div class="login-err" id="loginErr"></div>
+  </div>
+</div>
+
+<!-- ── APP ── -->
+<div class="app" id="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-left">
+      <div class="h-logo">📊</div>
+      <div>
+        <div class="h-title">Panel Comercial</div>
+        <div class="h-sub">CDA Barroblanco · Seguimiento</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="pill live"><div class="live-dot"></div>En vivo</div>
+      <div class="notif-badge" id="notifBadge">0 nuevos</div>
+      <div class="pill danger" onclick="cerrarSesion()">🚪 Salir</div>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-icon amber">📋</div>
+      <div><div class="stat-lbl">Sin gestionar</div><div class="stat-val amber" id="statNuevos">0</div></div>
+    </div>
+    <div class="stat">
+      <div class="stat-icon blue">📞</div>
+      <div><div class="stat-lbl">Contactados</div><div class="stat-val blue" id="statContactados">0</div></div>
+    </div>
+    <div class="stat">
+      <div class="stat-icon green">✅</div>
+      <div><div class="stat-lbl">Recuperados</div><div class="stat-val green" id="statRecuperados">0</div></div>
+    </div>
+    <div class="stat">
+      <div class="stat-icon red">📉</div>
+      <div><div class="stat-lbl">Perdidos</div><div class="stat-val red" id="statPerdidos">0</div></div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="section-title">📋 Clientes para Seguimiento</div>
+
+    <!-- FILTROS -->
+    <div class="filtros">
+      <button class="filtro-btn active" onclick="filtrar('todos',this)">Todos</button>
+      <button class="filtro-btn" onclick="filtrar('nueva',this)">⏳ Sin gestionar</button>
+      <button class="filtro-btn" onclick="filtrar('contactado',this)">📞 Contactados</button>
+      <button class="filtro-btn" onclick="filtrar('reagendado',this)">✅ Recuperados</button>
+      <button class="filtro-btn" onclick="filtrar('perdido',this)">❌ Perdidos</button>
+    </div>
+
+    <div class="seg-list" id="segList">
+      <div class="empty"><div class="empty-icon">📭</div><p>Sin clientes para seguimiento.<br>Cuando recepción marque "No asistió", aparecerán aquí.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCQe7XzrEPh_JCsWHCcbsf0gD0YUA9hrJE",
+    authDomain: "cda-turbo-barroblanco.firebaseapp.com",
+    databaseURL: "https://cda-turbo-barroblanco-default-rtdb.firebaseio.com",
+    projectId: "cda-turbo-barroblanco",
+    storageBucket: "cda-turbo-barroblanco.firebasestorage.app",
+    messagingSenderId: "938715096238",
+    appId: "1:938715096238:web:778ccc393c862e6c27393f"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  window._fbSignIn = (e,p) => signInWithEmailAndPassword(auth,e,p);
+  window._fbSignOut = () => signOut(auth);
+  window._fbUser = null;
+
+  onAuthStateChanged(auth, user => {
+    window._fbUser = user;
+    if(user){
+      user.getIdToken().then(t => { window._fbToken = t; });
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('app').style.display = 'flex';
+      iniciarPanel();
+    } else {
+      document.getElementById('loginScreen').style.display = 'flex';
+      document.getElementById('app').style.display = 'none';
+    }
+  });
+</script>
+
+<script>
+const FIREBASE_URL = 'https://cda-turbo-barroblanco-default-rtdb.firebaseio.com';
+let seguimientosDB = {};
+let filtroActivo = 'todos';
+let ultimoSeguimientoId = null;
+
+// ── AUTH ──
+async function esperarFirebase(intentos=20){
+  for(let i=0;i<intentos;i++){
+    if(window._fbSignIn) return true;
+    await new Promise(r=>setTimeout(r,300));
+  }
+  return false;
+}
+
+async function entrar(){
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass  = document.getElementById('loginPass').value;
+  const err   = document.getElementById('loginErr');
+  const btn   = document.getElementById('loginBtn');
+  err.style.display='none';
+  if(!email||!pass){err.textContent='❌ Ingresa correo y contraseña.';err.style.display='block';return;}
+  btn.textContent='⏳ Verificando...';btn.disabled=true;
+  try{
+    const listo = await esperarFirebase();
+    if(!listo) throw new Error('Firebase no disponible');
+    await window._fbSignIn(email,pass);
+  }catch(e){
+    console.error('Login error:',e.code, e.message);
+    let msg = '❌ Credenciales incorrectas.';
+    if(e.code==='auth/invalid-email') msg='❌ Correo inválido.';
+    if(e.code==='auth/user-not-found') msg='❌ Usuario no encontrado.';
+    if(e.code==='auth/wrong-password') msg='❌ Contraseña incorrecta.';
+    if(e.code==='auth/too-many-requests') msg='⛔ Demasiados intentos. Espera unos minutos.';
+    if(e.code==='auth/network-request-failed') msg='❌ Sin conexión. Revisa tu internet.';
+    if(e.message==='Firebase no disponible') msg='⏳ Firebase cargando, intenta de nuevo.';
+    err.textContent=msg;err.style.display='block';
+  }finally{btn.textContent='🔐 Ingresar';btn.disabled=false;}
+}
+
+function cerrarSesion(){
+  if(window._fbSignOut) window._fbSignOut();
+}
+
+// ── PANEL ──
+function iniciarPanel(){
+  cargarSeguimientos();
+  // Polling en tiempo real cada 5 segundos
+  setInterval(cargarSeguimientos, 5000);
+  // Sonido de notificación al llegar uno nuevo
+  playNotifSound();
+}
+
+async function cargarSeguimientos(){
+  try{
+    const r = await fetch(`${FIREBASE_URL}/seguimientos.json`);
+    const d = await r.json();
+    const nuevos = d ? d : {};
+
+    // Detectar si llegó uno nuevo para notificar
+    const idsNuevos = Object.keys(nuevos);
+    const idsActuales = Object.keys(seguimientosDB);
+    const llegaron = idsNuevos.filter(id => !idsActuales.includes(id));
+    if(llegaron.length > 0 && ultimoSeguimientoId !== null){
+      llegaron.forEach(id => {
+        const s = nuevos[id];
+        mostrarToast(`¡Cliente sin gestionar!`, `${s.nombre} · ${s.placa||''}`, '🔔');
+        playNotifSoundComercial();
+      });
+    }
+    if(ultimoSeguimientoId === null && idsNuevos.length > 0){
+      ultimoSeguimientoId = idsNuevos[idsNuevos.length-1];
+    }
+
+    seguimientosDB = nuevos;
+    renderSeguimientos();
+  }catch(e){ console.error('Error cargando seguimientos:', e); }
+}
+
+function renderSeguimientos(){
+  const list = document.getElementById('segList');
+  let datos = Object.entries(seguimientosDB).sort((a,b)=>b[0]-a[0]);
+
+  if(filtroActivo !== 'todos'){
+    datos = datos.filter(([,s]) => (s.estado||'nueva') === filtroActivo);
+  }
+
+  // Stats
+  const all = Object.values(seguimientosDB);
+  document.getElementById('statNuevos').textContent    = all.filter(s=>(s.estado||'nueva')==='nueva').length;
+  document.getElementById('statContactados').textContent = all.filter(s=>s.estado==='contactado').length;
+  document.getElementById('statRecuperados').textContent = all.filter(s=>s.estado==='reagendado').length;
+  document.getElementById('statPerdidos').textContent   = all.filter(s=>s.estado==='perdido').length;
+
+  // Badge
+  const sinGestionar = all.filter(s=>(s.estado||'nueva')==='nueva').length;
+  const badge = document.getElementById('notifBadge');
+  if(sinGestionar > 0){ badge.textContent = sinGestionar+' sin gestionar'; badge.style.display='block'; }
+  else badge.style.display='none';
+
+  if(!datos.length){
+    const msgs = {
+      'todos':'Sin clientes para seguimiento.<br>Cuando recepción marque "No asistió", aparecerán aquí.',
+      'nueva':'¡Sin pendientes! Todo gestionado 🎉',
+      'contactado':'Sin clientes en estado contactado.',
+      'reagendado':'Sin clientes recuperados aún.',
+      'perdido':'Sin clientes perdidos.'
+    };
+    list.innerHTML = `<div class="empty"><div class="empty-icon">📭</div><p>${msgs[filtroActivo]||''}</p></div>`;
+    return;
+  }
+
+  // Mantener cards abiertas
+  const abiertas = new Set([...document.querySelectorAll('.seg-body.open')].map(el=>el.dataset.id));
+
+  list.innerHTML = datos.map(([id,s])=>{
+    const estado = s.estado || 'nueva';
+    const estaAbierta = abiertas.has(id);
+    const estadoLabel = {nueva:'⏳ Sin gestionar',contactado:'📞 Contactado',reagendado:'✅ Recuperado',perdido:'❌ Perdido'}[estado]||estado;
+    const fechaReg = s.fechaRegistro || s.fecha || '—';
+    const horaReg  = s.horaRegistro  || '—';
+
+    // Historial de notas
+    const notas = s.notas ? Object.values(s.notas).sort((a,b)=>b.ts-a.ts) : [];
+    const historialHTML = notas.length ? notas.map(n=>`
+      <div class="historial-nota">
+        <div class="historial-nota-meta">🕐 ${n.fecha||''} ${n.hora||''} · ${n.autor||'Comercial'}</div>
+        <div class="historial-nota-texto">${n.texto}</div>
+      </div>`).join('') : '<div style="font-size:12px;color:var(--dim);margin-top:8px;">Sin notas aún.</div>';
+
+    return `<div class="seg-card ${estado}" id="card-${id}">
+      <div class="seg-head" onclick="toggleCard('${id}')">
+        <div>
+          <div class="seg-nombre">${s.nombre||'—'}</div>
+          <div class="seg-meta">📞 ${s.telefono||'—'} · 📅 ${fechaReg} ${horaReg!=='—'?'· 🕐 '+horaReg:''}</div>
+        </div>
+        <div class="seg-right">
+          <span class="estado-badge ${estado}">${estadoLabel}</span>
+          <span class="chevron ${estaAbierta?'open':''}" id="chev-${id}">▼</span>
+        </div>
+      </div>
+      <div class="seg-body ${estaAbierta?'open':''}" data-id="${id}">
+        <!-- DATOS CLIENTE -->
+        <div class="seg-grid">
+          <div class="seg-item"><div class="seg-item-lbl">🔖 Placa</div><div class="seg-item-val amber">${s.placa||'—'}</div></div>
+          <div class="seg-item"><div class="seg-item-lbl">🚗 Tipo</div><div class="seg-item-val">${s.tipo||'—'}</div></div>
+          <div class="seg-item"><div class="seg-item-lbl">🚘 Marca</div><div class="seg-item-val">${s.marca||'—'}</div></div>
+          <div class="seg-item"><div class="seg-item-lbl">📆 Año</div><div class="seg-item-val">${s.anio||'—'}</div></div>
+          <div class="seg-item"><div class="seg-item-lbl">⛽ Combustible</div><div class="seg-item-val">${s.combustible||'—'}</div></div>
+          <div class="seg-item"><div class="seg-item-lbl">📅 Cita original</div><div class="seg-item-val">${s.horaCita||s.hora||'—'}</div></div>
+        </div>
+
+        <!-- CAMBIAR ESTADO -->
+        <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Estado del seguimiento</div>
+        <div class="estado-row">
+          <button class="estado-btn nueva-btn ${estado==='nueva'?'active':''}"     onclick="cambiarEstado('${id}','nueva')">⏳ Sin gestionar</button>
+          <button class="estado-btn contactado-btn ${estado==='contactado'?'active':''}" onclick="cambiarEstado('${id}','contactado')">📞 Contactado</button>
+          <button class="estado-btn reagendado-btn ${estado==='reagendado'?'active':''}" onclick="cambiarEstado('${id}','reagendado')">✅ Recuperado</button>
+          <button class="estado-btn perdido-btn ${estado==='perdido'?'active':''}"   onclick="cambiarEstado('${id}','perdido')">❌ Perdido</button>
+        </div>
+
+        <!-- NOTA -->
+        <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;margin-top:14px;">Nueva nota</div>
+        <textarea class="notas-area" id="nota-${id}" placeholder="¿Qué pasó con este cliente? Escribe lo que se habló, compromisos, próximos pasos..."></textarea>
+        <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;">
+          <button class="save-btn" onclick="guardarNota('${id}')">💾 Guardar nota</button>
+          <a class="wa-btn" href="https://wa.me/57${(s.telefono||'').replace(/\D/g,'').replace(/^57/,'')}" target="_blank">💬 WhatsApp</a>
+        </div>
+
+        <!-- HISTORIAL -->
+        <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-top:16px;margin-bottom:6px;">Historial de notas</div>
+        ${historialHTML}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleCard(id){
+  const body = document.querySelector(`.seg-body[data-id="${id}"]`);
+  const chev = document.getElementById(`chev-${id}`);
+  if(!body) return;
+  body.classList.toggle('open');
+  if(chev) chev.classList.toggle('open');
+}
+
+async function cambiarEstado(id, nuevoEstado){
+  try{
+    await fetch(`${FIREBASE_URL}/seguimientos/${id}/estado.json`,{method:'PUT',body:JSON.stringify(nuevoEstado)});
+    if(seguimientosDB[id]) seguimientosDB[id].estado = nuevoEstado;
+    renderSeguimientos();
+    const labels = {nueva:'Sin gestionar',contactado:'Contactado',reagendado:'Recuperado ✅',perdido:'Perdido'};
+    mostrarToast('Estado actualizado', labels[nuevoEstado]||nuevoEstado, '✅');
+  }catch(e){ mostrarToast('Error','No se pudo actualizar el estado','❌'); }
+}
+
+async function guardarNota(id){
+  const textarea = document.getElementById(`nota-${id}`);
+  const texto = textarea ? textarea.value.trim() : '';
+  if(!texto){ mostrarToast('Atención','Escribe algo en la nota primero','⚠️'); return; }
+
+  const ahora = new Date();
+  const nota = {
+    texto,
+    fecha: ahora.toLocaleDateString('es-CO',{day:'2-digit',month:'2-digit',year:'numeric'}),
+    hora:  ahora.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'}),
+    autor: window._fbUser ? window._fbUser.email : 'Comercial',
+    ts: Date.now()
+  };
+  try{
+    const notaId = Date.now();
+    await fetch(`${FIREBASE_URL}/seguimientos/${id}/notas/${notaId}.json`,{method:'PUT',body:JSON.stringify(nota)});
+    if(seguimientosDB[id]){
+      if(!seguimientosDB[id].notas) seguimientosDB[id].notas = {};
+      seguimientosDB[id].notas[notaId] = nota;
+    }
+    if(textarea) textarea.value = '';
+    renderSeguimientos();
+    mostrarToast('Nota guardada','El seguimiento quedó registrado','💾');
+  }catch(e){ mostrarToast('Error','No se pudo guardar la nota','❌'); }
+}
+
+function filtrar(estado, btn){
+  filtroActivo = estado;
+  document.querySelectorAll('.filtro-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  renderSeguimientos();
+}
+
+// ── TOAST ──
+function mostrarToast(titulo, cuerpo, icono='🔔'){
+  const wrap = document.getElementById('toastWrap');
+  const d = document.createElement('div');
+  d.className = 'toast';
+  d.innerHTML = `<div class="toast-icon">${icono}</div><div style="flex:1"><div class="toast-title">${titulo}</div><div class="toast-body">${cuerpo}</div></div><button class="toast-close" onclick="this.parentElement.remove()">✕</button>`;
+  wrap.appendChild(d);
+  setTimeout(()=>{ if(d.parentElement) d.remove(); }, 6000);
+}
+
+// ── SONIDO ──
+let _audioCtx = null;
+function getAudioCtx(){ if(!_audioCtx) _audioCtx=new(window.AudioContext||window.webkitAudioContext)(); return _audioCtx; }
+function playNotifSoundComercial(){
+  try{
+    const ctx = getAudioCtx();
+    [[440,0],[554,0.18],[659,0.36],[880,0.54]].forEach(([freq,t])=>{
+      const osc=ctx.createOscillator(),gain=ctx.createGain();
+      osc.connect(gain);gain.connect(ctx.destination);
+      osc.type='sine';osc.frequency.value=freq;
+      gain.gain.setValueAtTime(0,ctx.currentTime+t);
+      gain.gain.linearRampToValueAtTime(0.3,ctx.currentTime+t+0.04);
+      gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+t+0.35);
+      osc.start(ctx.currentTime+t);osc.stop(ctx.currentTime+t+0.4);
+    });
+  }catch(e){}
+}
+function playNotifSound(){} // silencioso al cargar
+</script>
+</body>
+</html>
